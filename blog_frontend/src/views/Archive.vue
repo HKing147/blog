@@ -156,7 +156,7 @@ function toLabel() {
 <style scoped lang="scss">
 .container {
 	// direction: inherit;
-	opacity: 0.9;
+	opacity: 0.95;
 	width: 100%;
 	// height: 100%;
 	// background: url("http://api.hanximeng.com/ranimg/api.php");
@@ -178,7 +178,7 @@ function toLabel() {
 		vertical-align: middle;
 		line-height: 50px;
 		box-shadow: 2px 2px 2px #abd1ff;
-		opacity: 0.9;
+		opacity: 0.95;
 		img {
 			height: 50px;
 		}
@@ -210,13 +210,13 @@ function toLabel() {
 		text-align: justify;
 		left: 0;
 		right: 0;
-		opacity: 0.9;
+		opacity: 0.95;
 		overflow-y: scroll;
 		.left {
 			float: left;
 			width: 25%;
 			// height: 2000px;
-			opacity: 0.9;
+			opacity: 0.95;
 			.left-top {
 				border-radius: 10px;
 				width: 70%;

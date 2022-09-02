@@ -41,8 +41,9 @@
 				>
 					<el-option
 						v-for="item in labelOptions"
-						:key="item.labelId"
-						:value="item.labelName"
+						:key="item.id"
+						:value="item.id"
+						:label="item.labelName"
 					/>
 				</el-select>
 				<el-input v-model="addlabel" />
@@ -121,19 +122,19 @@ import { ElMessage } from "element-plus";
 // 标签列表
 let labelOptions = reactive([
 	{
-		labelId: 1,
+		id: 1,
 		labelName: "Linux",
 	},
 	{
-		labelId: 1,
+		id: 1,
 		labelName: "Mysql",
 	},
 	{
-		labelId: 1,
+		id: 1,
 		labelName: "算法",
 	},
 	{
-		labelId: 1,
+		id: 1,
 		labelName: "Django",
 	},
 ]);
@@ -247,9 +248,13 @@ async function imgAdd(pos, file) {
 // 发布博客
 async function submitForm() {
 	console.log(article);
-	article.labels = article.selectedLabels[0];
-	for (let i = 1; i < article.selectedLabels.length; i++) {
-		article.labels += "-" + article.selectedLabels[i];
+	if (article.selectedLabels.length == 0) {
+		article.labels = "";
+	} else {
+		article.labels = article.selectedLabels[0];
+		for (let i = 1; i < article.selectedLabels.length; i++) {
+			article.labels += "-" + article.selectedLabels[i];
+		}
 	}
 	console.log("lables: ", article.labels);
 	let data = await Get("writeArticle", article);

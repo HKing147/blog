@@ -25,7 +25,7 @@
 			<!-- <el-affix class="left" :offset="0"> -->
 			<div class="left">
 				<div class="left-top">
-					<img src="https://q1.qlogo.cn/g?b=qq&nk=361654768&s=640" />
+					<img :src="'api/' + currentUserInfo.avatarPath" />
 					<p>HKing</p>
 					<div class="txts">
 						<div>
@@ -121,6 +121,25 @@ import ArticleCard from "@/components/ArticleCard.vue";
 import { onMounted, reactive, readonly, toRef } from "vue";
 import { Get } from "@/utils/request";
 import { ElMessage } from "element-plus";
+import { useRoute } from "vue-router";
+const $route = useRoute();
+
+// let ckUserId = $route.params.id;
+
+// console.log("ckUserId", ckUserId);
+// 获取当前登录用户的相关信息
+let currentUserInfo = reactive({});
+async function getUserInfo() {
+	console.log("开始获取用户信息");
+	let data = await Get("getUserInfo");
+	console.log(data);
+	ElMessage({
+		message: data.meta.msg,
+		type: data.meta.status == 200 ? "success" : "error",
+	});
+	return data.data;
+}
+currentUserInfo = await getUserInfo();
 
 let articleList = reactive([
 	{ id: 1, title: "标题1", abstract: "摘要1", content: "## 内容1\n### abcd" },
@@ -178,7 +197,7 @@ function toArticle(id, article) {
 <style scoped lang="scss">
 .container {
 	// direction: inherit;
-	opacity: 0.9;
+	opacity: 0.95;
 	width: 100%;
 	// height: 100%;
 	// background: url("http://api.hanximeng.com/ranimg/api.php");
@@ -200,7 +219,7 @@ function toArticle(id, article) {
 		vertical-align: middle;
 		line-height: 50px;
 		box-shadow: 2px 2px 2px #abd1ff;
-		opacity: 0.9;
+		opacity: 0.95;
 		img {
 			height: 50px;
 		}
@@ -232,13 +251,13 @@ function toArticle(id, article) {
 		text-align: justify;
 		left: 0;
 		right: 0;
-		opacity: 0.9;
+		opacity: 0.95;
 		overflow-y: scroll;
 		.left {
 			float: left;
 			width: 25%;
 			// height: 2000px;
-			opacity: 0.9;
+			opacity: 0.95;
 			.left-top {
 				border-radius: 10px;
 				width: 70%;

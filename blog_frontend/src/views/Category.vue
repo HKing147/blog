@@ -85,7 +85,7 @@
 					<p>分类</p>
 					<div v-for="item in categoryList" class="item">
 						<span class="name" v-text="item.categoryName"></span>
-						<span class="number">13</span>
+						<span class="number" v-text="item.count"></span>
 						<!-- <span class="number" v-text="item.count"></span> -->
 					</div>
 				</div>
@@ -105,30 +105,44 @@ import router from "@/router";
 // 类别列表
 let categoryList = reactive([
 	{
-		id: 1,
+		categoryId: 1,
 		categoryName: "Linux",
 		count: 13,
 	},
 	{
-		id: 2,
+		categoryId: 2,
 		categoryName: "Mysql",
 		count: 5,
 	},
 	{
-		id: 3,
+		categoryId: 3,
 		categoryName: "算法",
 		count: 20,
 	},
 	{
-		id: 4,
+		categoryId: 4,
 		categoryName: "Django",
 		count: 3,
 	},
 ]);
+// // 获取类别列表
+// async function getCategoryList() {
+// 	console.log("获取类别列表");
+// 	let data = await Get("getCategoryList");
+// 	console.log(data);
+// 	ElMessage({
+// 		message: data.meta.msg,
+// 		type: data.meta.status == 200 ? "success" : "error",
+// 	});
+// 	return data.data;
+// }
+// categoryList = reactive(await getCategoryList());
+// console.log("categoryList: ", categoryList);
+
 // 获取类别列表
-async function getCategoryList() {
-	console.log("获取类别列表");
-	let data = await Get("getCategoryList");
+async function getCategoryCount() {
+	console.log("获取类别列表下的文章数");
+	let data = await Get("getCategoryCount");
 	console.log(data);
 	ElMessage({
 		message: data.meta.msg,
@@ -136,7 +150,7 @@ async function getCategoryList() {
 	});
 	return data.data;
 }
-categoryList = reactive(await getCategoryList());
+categoryList = reactive(await getCategoryCount());
 console.log("categoryList: ", categoryList);
 
 function toIndex() {
@@ -160,7 +174,7 @@ function toLabel() {
 <style scoped lang="scss">
 .container {
 	// direction: inherit;
-	opacity: 0.9;
+	opacity: 0.95;
 	width: 100%;
 	// height: 100%;
 	// background: url("http://api.hanximeng.com/ranimg/api.php");
@@ -182,7 +196,7 @@ function toLabel() {
 		vertical-align: middle;
 		line-height: 50px;
 		box-shadow: 2px 2px 2px #abd1ff;
-		opacity: 0.9;
+		opacity: 0.95;
 		img {
 			height: 50px;
 		}
@@ -214,13 +228,13 @@ function toLabel() {
 		text-align: justify;
 		left: 0;
 		right: 0;
-		opacity: 0.9;
+		opacity: 0.95;
 		overflow-y: scroll;
 		.left {
 			float: left;
 			width: 25%;
 			// height: 2000px;
-			opacity: 0.9;
+			opacity: 0.95;
 			.left-top {
 				border-radius: 10px;
 				width: 70%;

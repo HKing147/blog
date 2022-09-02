@@ -3,32 +3,30 @@
 		<el-backtop :right="50" :bottom="50" />
 		<div class="header">
 			<el-row :gutter="28">
-				<el-col :span="4">
-					<img
-						src="https://blog.nineya.com/upload/2021/06/logo-49aa4104f9c64652bc8f1ca3c318e0df.png"
-					/>
+				<el-col :span="6">
+					<img src="../assets/logo.png" />
 				</el-col>
-				<el-col :span="4" class="items">
+				<el-col :span="3" class="items">
 					<div @click="toIndex">首页</div>
 				</el-col>
-				<el-col :span="4" class="items">
+				<el-col :span="3" class="items">
 					<div @click="toArchive">归档</div>
 				</el-col>
-				<el-col :span="4" class="items">
+				<el-col :span="3" class="items">
 					<div @click="toCategory">分类</div>
 				</el-col>
-				<el-col :span="4" class="items">
+				<el-col :span="3" class="items">
 					<div @click="toLabel">标签</div>
 				</el-col>
-				<el-col :span="2">TODO </el-col>
+				<el-col :span="6">TODO </el-col>
 			</el-row>
 		</div>
 		<div class="main">
 			<!-- <el-affix class="left" :offset="0"> -->
 			<div class="left">
 				<div class="left-top">
-					<img src="https://q1.qlogo.cn/g?b=qq&nk=361654768&s=640" />
-					<p>HKing</p>
+					<img :src="'api/' + currentUserInfo.avatarPath" />
+					<p v-text="currentUserInfo.name"></p>
 					<div class="txts">
 						<div>
 							文章
@@ -107,8 +105,71 @@
 						:subfield="false"
 						:toolbarsFlag="false"
 						:ishljs="true"
+						style="min-height: 20px"
 						codeStyle="tomorrow-night-eighties"
 					/>
+				</div>
+				<div class="commentContainer">
+					<div class="head" style="font-weight: bold">
+						<el-icon color="#1e90ff"><ChatDotRound /></el-icon>
+						评论区
+					</div>
+					<el-divider border-style="double" />
+					<div class="commentInput">
+						<img :src="'api/' + currentUserInfo.avatarPath" />
+						<mavonEditor
+							v-model="Mycomment.content"
+							placeholder="撰写评论..."
+							defaultOpen="edit"
+							:subfield="false"
+							:ishljs="true"
+							:toolbarsFlag="false"
+							codeStyle="tomorrow-night-eighties"
+							ref="mdedit"
+							@imgAdd="imgAdd"
+							style="
+								min-height: 100px;
+								max-height: 200px;
+								width: 680px;
+								border-radius: 10px;
+							"
+						></mavonEditor>
+					</div>
+					<div class="btn">
+						<el-button type="primary" @click="submitComment" round
+							>提交评论</el-button
+						>
+					</div>
+					<div class="comments">
+						<p>{{ commentList.length }}条评论</p>
+						<el-divider border-style="double" />
+						<div class="maincontainer">
+							<div v-for="comment in commentList" class="commentItem">
+								<div class="imgContainer">
+									<img :src="'api/' + comment.avatarPath" />
+								</div>
+								<div class="commentContent">
+									<div v-text="comment.userName" class="uname"></div>
+									<div v-text="comment.commentTime" class="ctime"></div>
+									<div class="comment">
+										<mavonEditor
+											v-model="comment.comment"
+											defaultOpen="preview"
+											:subfield="false"
+											:toolbarsFlag="false"
+											:ishljs="true"
+											codeStyle="tomorrow-night-eighties"
+											style="
+												min-height: 15px;
+												width: 680px;
+												border-radius: 10px;
+											"
+										/>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</el-scrollbar>
 			<el-affix class="right" :offset="90">
@@ -123,9 +184,26 @@ import router from "@/router";
 import { onMounted, reactive, ref, defineProps, onBeforeMount } from "vue";
 import { useRoute } from "vue-router";
 import { mavonEditor } from "mavon-editor";
+import { Get, Post } from "@/utils/request";
+import { ElMessage } from "element-plus";
 import "mavon-editor/dist/css/index.css";
 
 const $route = useRoute();
+
+// 获取当前登录用户的相关信息
+let currentUserInfo = reactive({});
+async function getUserInfo() {
+	console.log("开始获取用户信息");
+	let data = await Get("getUserInfo");
+	console.log(data);
+	ElMessage({
+		message: data.meta.msg,
+		type: data.meta.status == 200 ? "success" : "error",
+	});
+	return data.data;
+}
+currentUserInfo = await getUserInfo();
+
 let article = reactive($route.query);
 console.log(article);
 // let articleContent = ref(
@@ -134,6 +212,49 @@ console.log(article);
 let articleContent = reactive({
 	txt: "## 标题1\n### 标题2\n```\n const int N = 1e5+10;\n```\n## 标题1\n### 标题2\n```\n const int N = 1e5+10;\n```\n## 标题1\n### 标题2\n```\n const int N = 1e5+10;\n```\n## 标题1\n### 标题2\n```\n const int N = 1e5+10;\n```\n",
 });
+
+let commentList = reactive([{}]);
+async function getCommentList() {
+	// let articleId = article.articleId;
+	console.log("***", article.id);
+	let data = await Get("getCommentList", { articleId: article.id });
+	console.log(data);
+	ElMessage({
+		message: data.meta.msg,
+		type: data.meta.status == 200 ? "success" : "error",
+	});
+	return data.data;
+}
+commentList = await getCommentList();
+console.log("commentList", commentList);
+
+let Mycomment = reactive({
+	content: "",
+	articleId: article.id,
+});
+console.log(Mycomment);
+// 评论正文上传图片
+const mdedit = ref();
+async function imgAdd(pos, file) {
+	console.log("aa", pos);
+	console.log("bb", file);
+	let imgData = new FormData();
+	imgData.append("file", file);
+	let data = await Post("uploadCommentImage", imgData);
+	console.log(data);
+	// console.log(mdedit.value.$img2Url);
+	mdedit.value.$img2Url(pos, "api/" + data.imagerPath);
+}
+async function submitComment() {
+	console.log(Mycomment);
+	let data = await Get("submitComment", Mycomment);
+	console.log(data);
+	ElMessage({
+		message: data.meta.msg,
+		type: data.meta.status == 200 ? "success" : "error",
+	});
+}
+
 function toIndex() {
 	// 去首页
 	router.push("/");
@@ -346,6 +467,83 @@ onBeforeMount(() => {
 				overflow: hidden;
 				// .mavonEditor {
 				// }
+			}
+			.commentContainer {
+				width: 100%;
+				margin-top: 20px;
+				border-radius: 20px;
+				// padding: 20px;
+				background-color: white;
+				.head {
+					padding-top: 20px;
+					padding-left: 20px;
+				}
+				.el-divider {
+					// margin: 5px;
+					margin-top: 5px;
+					margin-bottom: 20px;
+				}
+				.commentInput {
+					width: 100%;
+					display: flex;
+					flex-direction: row;
+					img {
+						width: 50px;
+						height: 50px;
+						border-radius: 25px;
+						margin-left: 20px;
+						margin-right: 10px;
+					}
+				}
+				.btn {
+					width: 100%;
+					.el-button {
+						position: relative;
+						left: 660px;
+						margin-top: 15px;
+						// margin-right: 30px;
+					}
+				}
+				.comments {
+					margin: 20px;
+					p {
+						font-weight: bold;
+					}
+					.maincontainer {
+						display: flex;
+						flex-direction: column;
+						.commentItem {
+							display: flex;
+							flex-direction: row;
+							margin-bottom: 20px;
+							.imgContainer {
+								img {
+									width: 50px;
+									height: 50px;
+									border-radius: 25px;
+								}
+								margin-right: 10px;
+							}
+							.commentContent {
+								margin-top: 5px;
+								display: flex;
+								flex-direction: column;
+								.uname {
+									font-size: 18px;
+									font-weight: bold;
+								}
+								.ctime {
+									margin-top: 5px;
+									font-size: 15px;
+								}
+								.comment {
+									margin-top: 5px;
+									background-color: #abd1ff;
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 

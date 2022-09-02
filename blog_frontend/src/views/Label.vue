@@ -84,53 +84,9 @@
 				<div class="labels">
 					<p>标签</p>
 					<div class="down">
-						<a class="item">
-							<span class="name">VUe</span>
-							<span class="count">3</span>
-						</a>
-						<a class="item">
-							<span class="name">算法</span>
-							<span class="count">13</span>
-						</a>
-						<a class="item">
-							<span class="name">数据库</span>
-							<span class="count">7</span>
-						</a>
-						<a class="item">
-							<span class="name">VUe</span>
-							<span class="count">3</span>
-						</a>
-						<a class="item">
-							<span class="name">算法</span>
-							<span class="count">13</span>
-						</a>
-						<a class="item">
-							<span class="name">数据库</span>
-							<span class="count">7</span>
-						</a>
-						<a class="item">
-							<span class="name">VUe</span>
-							<span class="count">3</span>
-						</a>
-						<a class="item">
-							<span class="name">算法</span>
-							<span class="count">13</span>
-						</a>
-						<a class="item">
-							<span class="name">数据库</span>
-							<span class="count">7</span>
-						</a>
-						<a class="item">
-							<span class="name">VUe</span>
-							<span class="count">3</span>
-						</a>
-						<a class="item">
-							<span class="name">算法</span>
-							<span class="count">13</span>
-						</a>
-						<a class="item">
-							<span class="name">数据库</span>
-							<span class="count">7</span>
+						<a v-for="label in labelList" class="item">
+							<span v-text="label.labelName" class="name"></span>
+							<span v-text="label.count" class="count"></span>
 						</a>
 					</div>
 					<!-- <div v-for="item in categoryList" class="item">
@@ -151,33 +107,34 @@ import { Get } from "@/utils/request";
 import { ElMessage } from "element-plus";
 import router from "@/router";
 
-// 类别列表
-let categoryList = reactive([
+// 标签列表
+let labelList = reactive([
 	{
-		id: 1,
-		categoryName: "Linux",
+		labelId: 1,
+		labelName: "Linux",
 		count: 13,
 	},
 	{
-		id: 2,
-		categoryName: "Mysql",
+		labelId: 2,
+		labelName: "Mysql",
 		count: 5,
 	},
 	{
-		id: 3,
-		categoryName: "算法",
+		labelId: 3,
+		labelName: "算法",
 		count: 20,
 	},
 	{
-		id: 4,
-		categoryName: "Django",
+		labelId: 4,
+		labelName: "Django",
 		count: 3,
 	},
 ]);
-// 获取类别列表
-async function getCategoryList() {
-	console.log("获取类别列表");
-	let data = await Get("getCategoryList");
+
+// 获取标签列表
+async function getLabelCount() {
+	console.log("获取类别列表下的文章数");
+	let data = await Get("getLabelCount");
 	console.log(data);
 	ElMessage({
 		message: data.meta.msg,
@@ -185,8 +142,8 @@ async function getCategoryList() {
 	});
 	return data.data;
 }
-categoryList = reactive(await getCategoryList());
-console.log("categoryList: ", categoryList);
+labelList = reactive(await getLabelCount());
+console.log("labelList: ", labelList);
 
 function toIndex() {
 	// 去首页
@@ -209,7 +166,7 @@ function toLabel() {
 <style scoped lang="scss">
 .container {
 	// direction: inherit;
-	opacity: 0.9;
+	opacity: 0.95;
 	width: 100%;
 	// height: 100%;
 	// background: url("http://api.hanximeng.com/ranimg/api.php");
@@ -231,7 +188,7 @@ function toLabel() {
 		vertical-align: middle;
 		line-height: 50px;
 		box-shadow: 2px 2px 2px #abd1ff;
-		opacity: 0.9;
+		opacity: 0.95;
 		img {
 			height: 50px;
 		}
@@ -263,13 +220,13 @@ function toLabel() {
 		text-align: justify;
 		left: 0;
 		right: 0;
-		opacity: 0.9;
+		opacity: 0.95;
 		overflow-y: scroll;
 		.left {
 			float: left;
 			width: 25%;
 			// height: 2000px;
-			opacity: 0.9;
+			opacity: 0.95;
 			.left-top {
 				border-radius: 10px;
 				width: 70%;
