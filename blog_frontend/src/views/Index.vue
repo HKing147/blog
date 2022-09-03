@@ -4,10 +4,13 @@
 		<div class="header">
 			<el-row :gutter="28">
 				<el-col :span="6">
-					<img src="../assets/logo.png" />
+					<img
+						src="../assets/logo.png"
+						style="float: left; margin-left: 10px"
+					/>
 				</el-col>
 				<el-col :span="3" class="items">
-					<div @click="toIndex">首页</div>
+					<div @click="toIndex(ckUserId)">首页</div>
 				</el-col>
 				<el-col :span="3" class="items">
 					<div @click="toArchive">归档</div>
@@ -18,74 +21,99 @@
 				<el-col :span="3" class="items">
 					<div @click="toLabel">标签</div>
 				</el-col>
-				<el-col :span="6">TODO </el-col>
+				<el-col :span="6">
+					<div
+						style="display: flex; flex-direction: row; vertical-align: middle"
+					>
+						<img
+							:src="'api/' + currentUserInfo.avatarPath"
+							style="
+								height: 50px;
+								width: 50px;
+								border-radius: 25px;
+								margin-left: 200px;
+								cursor: pointer;
+							"
+							@click="toIndex(currentUserInfo.id)"
+						/>
+						<el-dropdown @command="handleCommand">
+							<el-button
+								type="primary"
+								style="
+									height: 40px;
+									width: 80px;
+									border-radius: 25px;
+									margin-left: 20px;
+									margin-top: 5px;
+								"
+							>
+								<el-icon :size="20">
+									<Edit />
+								</el-icon>
+								<el-icon class="el-icon--right"><arrow-down /></el-icon>
+							</el-button>
+							<template #dropdown>
+								<el-dropdown-menu>
+									<el-dropdown-item command="/WriteArticle"
+										>发布博客</el-dropdown-item
+									>
+									<el-dropdown-item command="/UploadAvatar"
+										>上传头像</el-dropdown-item
+									>
+								</el-dropdown-menu>
+							</template>
+						</el-dropdown>
+						<!-- <el-button
+							type="primary"
+							:icon="Edit"
+							style="
+								height: 40px;
+								width: 80px;
+								border-radius: 25px;
+								margin-left: 20px;
+								margin-top: 5px;
+							"
+							@click="toWriteArticle"
+						/> -->
+					</div>
+				</el-col>
 			</el-row>
 		</div>
 		<div class="main">
 			<!-- <el-affix class="left" :offset="0"> -->
-			<div class="left">
+			<!-- <div class="left"> -->
+			<el-affix class="left" :offset="90">
 				<div class="left-top">
-					<img :src="'api/' + currentUserInfo.avatarPath" />
-					<p>HKing</p>
+					<img
+						:src="'api/' + ckUserInfo.avatarPath"
+						style="cursor: pointer"
+						@click="toIndex(ckUserInfo.id)"
+					/>
+					<p v-text="ckUserInfo.name"></p>
 					<div class="txts">
 						<div>
 							文章
-							<p>21</p>
+							<p v-text="articleList.length"></p>
 						</div>
 						<div>
 							分类
-							<p>21</p>
+							<p v-text="categoryList.length"></p>
 						</div>
 						<div>
 							标签
-							<p>21</p>
+							<p v-text="labelList.length"></p>
 						</div>
 					</div>
 				</div>
-				<div class="Classification">
-					<el-card class="box-card">
-						<template #header>
-							<div class="card-header">
-								<div>
-									<el-icon color="#1e90ff">
-										<Grid />
-									</el-icon>
-									<span>分类</span>
-								</div>
-								<span>更多 >></span>
-							</div>
-						</template>
-						<div v-for="o in 4" :key="o" class="text item">
-							{{ "List item " + o }}
-						</div>
-					</el-card>
-				</div>
-				<div class="Label">
-					<el-card class="box-card">
-						<template #header>
-							<div class="card-header">
-								<div>
-									<el-icon color="#1e90ff">
-										<Grid />
-									</el-icon>
-									<span>标签</span>
-								</div>
-								<span>更多 >></span>
-							</div>
-						</template>
-						<div v-for="o in 4" :key="o" class="text item">
-							{{ "List item " + o }}
-						</div>
-					</el-card>
-				</div>
-			</div>
-			<!-- </el-affix> -->
+				<!-- </div> -->
+			</el-affix>
 			<el-scrollbar class="content">
 				<div class="cards">
 					<ArticleCard
 						v-for="article in articleList"
 						:article="article"
 						:id="article.id"
+						:ckUserId="ckUserId"
 						@click="toArticle(article.id, article)"
 					></ArticleCard>
 				</div>
@@ -109,9 +137,67 @@
 					></ArticleCard>
 				</div> -->
 			</el-scrollbar>
-			<el-affix class="right" :offset="90">
-				<div>Right</div>
-			</el-affix>
+			<!-- <el-affix class="right" :offset="90"> -->
+			<div class="right">
+				<div>
+					<div class="Classification">
+						<el-card class="box-card">
+							<template #header>
+								<div class="card-header">
+									<div>
+										<el-icon color="#1e90ff">
+											<Menu />
+										</el-icon>
+										<span>分类</span>
+									</div>
+									<span @click="toCategory">更多 >></span>
+								</div>
+							</template>
+							<div style="display: flex; flex-direction: column">
+								<div
+									v-for="category in categoryList"
+									:key="category.categoryId"
+									class="text item"
+									style="margin-bottom: 5px"
+								>
+									<span
+										v-text="category.categoryName"
+										style="float: left"
+									></span>
+									<span v-text="category.count" style="float: right"></span>
+								</div>
+							</div>
+						</el-card>
+					</div>
+					<div class="Label">
+						<el-card class="box-card">
+							<template #header>
+								<div class="card-header">
+									<div>
+										<el-icon color="#1e90ff">
+											<Menu />
+										</el-icon>
+										<span>标签</span>
+									</div>
+									<span @click="toLabel">更多 >></span>
+								</div>
+							</template>
+							<div style="display: flex; flex-direction: column">
+								<div
+									v-for="label in labelList"
+									:key="label.labelId"
+									class="text item"
+									style="margin-bottom: 5px"
+								>
+									<span v-text="label.labelName" style="float: left"></span>
+									<span v-text="label.count" style="float: right"></span>
+								</div>
+							</div>
+						</el-card>
+					</div>
+				</div>
+				<!-- </el-affix> -->
+			</div>
 		</div>
 	</div>
 </template>
@@ -122,11 +208,26 @@ import { onMounted, reactive, readonly, toRef } from "vue";
 import { Get } from "@/utils/request";
 import { ElMessage } from "element-plus";
 import { useRoute } from "vue-router";
+import { Edit } from "@element-plus/icons-vue";
 const $route = useRoute();
 
-// let ckUserId = $route.params.id;
+let ckUserId = $route.params.id;
 
-// console.log("ckUserId", ckUserId);
+console.log("ckUserId", ckUserId);
+// 获取当前页面用户的相关信息
+let ckUserInfo = reactive({});
+async function getCkUserInfo() {
+	console.log("开始获取当前页面用户信息");
+	let data = await Get("getCkUserInfo", { ckUserId: ckUserId });
+	console.log(data);
+	ElMessage({
+		message: data.meta.msg,
+		type: data.meta.status == 200 ? "success" : "error",
+	});
+	return data.data;
+}
+ckUserInfo = await getCkUserInfo();
+
 // 获取当前登录用户的相关信息
 let currentUserInfo = reactive({});
 async function getUserInfo() {
@@ -140,19 +241,58 @@ async function getUserInfo() {
 	return data.data;
 }
 currentUserInfo = await getUserInfo();
+// 类别列表
+let categoryList = reactive([
+	{
+		categoryId: 1,
+		categoryName: "Linux",
+		count: 13,
+	},
+]);
+
+// 获取类别列表
+async function getCategoryCount() {
+	console.log("获取类别列表下的文章数");
+	let data = await Get("getCategoryCount", { ckUserId: ckUserId });
+	console.log(data);
+	ElMessage({
+		message: data.meta.msg,
+		type: data.meta.status == 200 ? "success" : "error",
+	});
+	return data.data;
+}
+categoryList = reactive(await getCategoryCount());
+console.log("categoryList: ", categoryList);
+// 标签列表
+let labelList = reactive([
+	{
+		labelId: 1,
+		labelName: "Linux",
+		count: 13,
+	},
+]);
+
+// 获取标签列表
+async function getLabelCount() {
+	console.log("获取类别列表下的文章数");
+	let data = await Get("getLabelCount", { ckUserId: ckUserId });
+	console.log(data);
+	ElMessage({
+		message: data.meta.msg,
+		type: data.meta.status == 200 ? "success" : "error",
+	});
+	return data.data;
+}
+labelList = reactive(await getLabelCount());
+console.log("labelList: ", labelList);
 
 let articleList = reactive([
 	{ id: 1, title: "标题1", abstract: "摘要1", content: "## 内容1\n### abcd" },
-	{ id: 2, title: "标题2", abstract: "摘要2", content: "## 内容2\n### abcd" },
-	{ id: 3, title: "标题3", abstract: "摘要3", content: "## 内容3\n### abcd" },
-	{ id: 4, title: "标题4", abstract: "摘要4", content: "## 内容4\n### abcd" },
-	{ id: 5, title: "标题5", abstract: "摘要5", content: "## 内容5\n### abcd" },
 ]);
-
 // 获取文章列表
 async function getArticleList() {
 	console.log("获取文章列表");
-	let data = await Get("getArticleList");
+	let data = await Get("getArticleList", { ckUserId: ckUserId });
 	console.log(data);
 	ElMessage({
 		message: data.meta.msg,
@@ -165,32 +305,41 @@ async function getArticleList() {
 articleList = await getArticleList();
 console.log("articleList", articleList);
 
+function handleCommand(command) {
+	console.log(command);
+	router.push(command);
+}
+
 let a = reactive({ articleId: 1 });
-function toIndex() {
+function toIndex(id) {
 	// 去首页
-	router.push("/");
+	router.push("/" + id);
 }
 function toArchive() {
 	// 去归档页
-	router.push("/Archive");
+	router.push("/Archive/" + ckUserId);
 }
 function toCategory() {
 	// 去分类页
-	router.push("/Category");
+	router.push("/Category/" + ckUserId);
 }
 function toLabel() {
 	// 去标签页
-	router.push("/Label");
+	router.push("/Label/" + ckUserId);
 }
 function toArticle(id, article) {
 	console.log("===", article);
 	// 去博客详情页
 	router.push({
-		path: "/article",
+		path: "/article/" + ckUserId,
 		query: {
 			...article,
 		},
 	});
+}
+function toWriteArticle() {
+	// 去写博客页
+	router.push("/writeArticle");
 }
 </script>
 
@@ -252,7 +401,7 @@ function toArticle(id, article) {
 		left: 0;
 		right: 0;
 		opacity: 0.95;
-		overflow-y: scroll;
+		// overflow-y: scroll;
 		.left {
 			float: left;
 			width: 25%;
@@ -291,53 +440,12 @@ function toArticle(id, article) {
 					// margin: 0 auto;
 				}
 			}
-			.Classification {
-				border-radius: 10px;
-				width: 70%;
-				background-color: white;
-				margin: 0 auto;
-				margin-top: 20px;
-				.box-card {
-					border-radius: 10px;
-					.card-header {
-						display: flex;
-						justify-content: space-between;
-						align-items: center;
-						height: 15px;
-						span {
-							line-height: 15px;
-							font-size: 15px;
-							vertical-align: middle;
-						}
-					}
-				}
-			}
-			.Label {
-				border-radius: 10px;
-				width: 70%;
-				background-color: white;
-				margin: 0 auto;
-				margin-top: 20px;
-				.box-card {
-					border-radius: 10px;
-					.card-header {
-						display: flex;
-						justify-content: space-between;
-						align-items: center;
-						height: 15px;
-						span {
-							line-height: 15px;
-							font-size: 15px;
-							vertical-align: middle;
-						}
-					}
-				}
-			}
 		}
 		.content {
 			float: left;
 			width: 50%;
-			// height: 2000px;
+			// min-height: 100%;
+			min-height: 655px;
 			border-radius: 10px;
 			// display: flex;
 			// flex-direction: row;
@@ -356,11 +464,58 @@ function toArticle(id, article) {
 
 		.right {
 			float: left;
-			// width: 25%;
-			height: 2000px;
+			width: 25%;
+			// height: 2000px;
 			div {
-				background-color: aquamarine;
-				opacity: 0.9;
+				opacity: 0.95;
+				.Classification {
+					border-radius: 10px;
+					width: 70%;
+					background-color: white;
+					margin: 0 auto;
+					margin-top: 20px;
+					.box-card {
+						border-radius: 10px;
+						.card-header {
+							display: flex;
+							justify-content: space-between;
+							align-items: center;
+							height: 15px;
+							span {
+								line-height: 15px;
+								font-size: 15px;
+								vertical-align: middle;
+							}
+							span:hover {
+								cursor: pointer;
+							}
+						}
+					}
+				}
+				.Label {
+					border-radius: 10px;
+					width: 70%;
+					background-color: white;
+					margin: 0 auto;
+					margin-top: 20px;
+					.box-card {
+						border-radius: 10px;
+						.card-header {
+							display: flex;
+							justify-content: space-between;
+							align-items: center;
+							height: 15px;
+							span {
+								line-height: 15px;
+								font-size: 15px;
+								vertical-align: middle;
+							}
+							span:hover {
+								cursor: pointer;
+							}
+						}
+					}
+				}
 			}
 		}
 	}

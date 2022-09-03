@@ -58,7 +58,7 @@ import { ElMessage } from "element-plus";
 
 // import { login } from "@/api/user";
 let loginForm = reactive({
-	userName: "ascasd",
+	userName: "user1",
 	password: "asfdasdasd",
 });
 console.log(loginForm);
@@ -70,7 +70,7 @@ async function Login(loginForm) {
 		type: data.meta.status == 200 ? "success" : "error",
 	});
 	if (data.meta.status == 200) {
-		router.push("/");
+		router.push("/" + data.data);
 	}
 }
 function toRegister() {

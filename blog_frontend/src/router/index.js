@@ -2,7 +2,7 @@ import { createRouter, createWebHashHistory } from "vue-router";
 
 const routes = [
 	{
-		path: "/",
+		path: "/:id",
 		name: "Index",
 		component: () => import("../views/Index.vue"),
 
@@ -27,22 +27,22 @@ const routes = [
 		component: () => import("../components/ArticleCard.vue"),
 	},
 	{
-		path: "/archive",
+		path: "/archive/:id",
 		name: "Archive",
 		component: () => import("../views/Archive.vue"),
 	},
 	{
-		path: "/category",
+		path: "/category/:id",
 		name: "Category",
 		component: () => import("../views/Category.vue"),
 	},
 	{
-		path: "/label",
+		path: "/label/:id",
 		name: "Label",
 		component: () => import("../views/Label.vue"),
 	},
 	{
-		path: "/article",
+		path: "/article/:id",
 		name: "Article",
 		component: () => import("../views/Article.vue"),
 	},
@@ -83,7 +83,7 @@ router.beforeEach((to, from, next) => {
 		next();
 	} else {
 		let cookie = document.cookie;
-		console.log(cookie);
+		// console.log(cookie);
 		if (!cookie) {
 			NProgress.start();
 			next("/login");
@@ -95,6 +95,7 @@ router.beforeEach((to, from, next) => {
 });
 
 router.afterEach((to, from) => {
+	window.scrollTo(0, 0);
 	NProgress.done();
 });
 

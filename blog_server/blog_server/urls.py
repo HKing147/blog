@@ -23,7 +23,9 @@ urlpatterns = [
     path('logout',views.logout),
     path('register', views.register),
     path('getUserInfo',views.getUserInfo),
+    path('getCkUserInfo',views.getCkUserInfo),
     path('uploadAvatar', views.uploadAvatar),
+    path('updateAvatar',views.updateAvatar),
     path('uploadCover',views.uploadCover),
     path('uploadImage',views.uploadImage),
     path('uploadCommentImage',views.uploadCommentImage),
@@ -37,4 +39,5 @@ urlpatterns = [
     path('getArticleList',views.getArticleList),
     path('submitComment',views.submitComment),
     path('getCommentList',views.getCommentList),
+    path('UpdateArticleViews',views.UpdateArticleViews),
 ]

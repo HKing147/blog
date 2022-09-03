@@ -1,5 +1,6 @@
 <template>
 	<div class="container">
+		<el-backtop :right="50" :bottom="50" />
 		<el-form
 			:model="article"
 			status-icon
@@ -119,6 +120,22 @@ import "mavon-editor/dist/css/index.css";
 import { onBeforeMount, onMounted, reactive, ref } from "vue";
 import { Get, Post } from "@/utils/request";
 import { ElMessage } from "element-plus";
+import router from "@/router";
+
+// 获取当前登录用户的相关信息
+let currentUserInfo = reactive({});
+async function getUserInfo() {
+	console.log("开始获取用户信息");
+	let data = await Get("getUserInfo");
+	console.log(data);
+	ElMessage({
+		message: data.meta.msg,
+		type: data.meta.status == 200 ? "success" : "error",
+	});
+	return data.data;
+}
+currentUserInfo = await getUserInfo();
+
 // 标签列表
 let labelOptions = reactive([
 	{
@@ -141,7 +158,7 @@ let labelOptions = reactive([
 // 获取标签列表
 async function getLabelList() {
 	console.log("获取标签列表");
-	let data = await Get("getLabelList");
+	let data = await Get("getLabelList", { ckUserId: currentUserInfo.id });
 	console.log(data);
 	ElMessage({
 		message: data.meta.msg,
@@ -173,7 +190,7 @@ let categoryOptions = reactive([
 // 获取类别列表
 async function getCategoryList() {
 	console.log("获取类别列表");
-	let data = await Get("getCategoryList");
+	let data = await Get("getCategoryList", { ckUserId: currentUserInfo.id });
 	console.log(data);
 	ElMessage({
 		message: data.meta.msg,
@@ -263,6 +280,16 @@ async function submitForm() {
 		message: data.meta.msg,
 		type: data.meta.status == 200 ? "success" : "error",
 	});
+	if (data.meta.status == 200) {
+		// 	router.push("/article/" + data.data);
+		// 去博客详情页
+		router.push({
+			path: "/article/" + currentUserInfo.id,
+			query: {
+				...data.data,
+			},
+		});
+	}
 }
 // onMounted(async () => {
 // 	categoryOptions.push(...(await getCategoryList()));
@@ -286,16 +313,18 @@ async function submitForm() {
 <style scoped lang="scss">
 .container {
 	width: 100%;
-	height: 100%;
+	// height: 100%;
 	background: url("../assets/article.png");
-	background-size: cover;
+	background-size: 100% 100%;
 	position: absolute;
 	// background-position: center center;
 	background-attachment: fixed;
+	background-repeat: no-repeat;
 	.articleForm {
-		opacity: 0.9;
+		opacity: 0.95;
 		margin: 0 auto;
-		margin-top: 50px;
+		margin-top: 15px;
+		margin-bottom: 15px;
 		border-radius: 20px;
 		width: 70%;
 		padding-top: 20px;

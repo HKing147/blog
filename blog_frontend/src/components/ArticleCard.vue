@@ -7,9 +7,9 @@
 			<p v-text="props.article.title"></p>
 			<div class="info">
 				<span v-text="props.article.createTime + ' /'"></span>
-				<span>阅读：20 /</span>
-				<span>评论：13 /</span>
-				<span>赞：15</span>
+				<span>阅读：{{ props.article.views }} /</span>
+				<span>评论：{{ commentList.length }}</span>
+				<!-- <span>赞：15</span> -->
 				<el-divider border-style="double" />
 			</div>
 			<div class="abstract" v-text="props.article.abstract"></div>
@@ -17,6 +17,8 @@
 	</div>
 </template>
 <script setup>
+import { Get } from "@/utils/request";
+import { ElMessage } from "element-plus";
 import { reactive, toRefs } from "vue";
 
 const props = defineProps({
@@ -28,6 +30,20 @@ console.log("***", props.article);
 // console.log(props);
 let id = props.id;
 let article = props.article;
+let commentList = reactive([{}]);
+async function getCommentList() {
+	// let articleId = article.articleId;
+	console.log("***", article.id);
+	let data = await Get("getCommentList", { articleId: article.id });
+	console.log(data);
+	ElMessage({
+		message: data.meta.msg,
+		type: data.meta.status == 200 ? "success" : "error",
+	});
+	return data.data;
+}
+commentList = await getCommentList();
+console.log("commentList", commentList);
 // console.log("id", id);
 // console.log("id", props.id);
 // console.log("article", article);

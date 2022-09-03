@@ -36,11 +36,11 @@ def login(request):
     print(userName,password)
 
     try:
-        res = User.objects.filter(name=userName).first()
-        print(res.name,res.password)
-        if res.password == password :
-            request.session["info"]={"userName":res.name,"userId":res.id}
-            return JsonResponse({"meta":{"status":200,"msg":"登录成功"}})
+        user = User.objects.filter(name=userName).first()
+        print(user.name,user.password)
+        if user.password == password :
+            request.session["info"]={"userName":user.name,"userId":user.id}
+            return JsonResponse({"data":user.id,"meta":{"status":200,"msg":"登录成功"}})
         else:
             return JsonResponse({"meta":{"status":400,"msg":"登录失败，用户名或密码错误！"}})
     except Exception as e:
@@ -62,7 +62,19 @@ def getUserInfo(request):
     except Exception as e:
         print(e)
         return JsonResponse({"meta": {"status": 400, "msg": "获取失败"}})
-# 上传图片
+
+def getCkUserInfo(request):
+    try:
+        userId = request.GET.get('ckUserId')
+        print("userId",userId)
+        userInfo = [item for item in User.objects.filter(id=userId).values()][0]
+        print(userInfo)
+        return JsonResponse({"data":userInfo,"meta": {"status": 200, "msg": "获取成功"}})
+    except Exception as e:
+        print(e)
+        return JsonResponse({"meta": {"status": 400, "msg": "获取失败"}})
+
+# 上传头像
 def uploadAvatar(request):
     print("进来了")
     try:
@@ -70,14 +82,29 @@ def uploadAvatar(request):
         userId = request.session.get('info')['userId']
         pprint(img)
 
-        filepath = 'static/avatars/' + str(userId)+".jpeg"
+        timestamp = int(time.time()*1000)
+        filepath = 'static/avatars/' + str(userId)+"-"+str(timestamp)+".jpeg"
 
         with default_storage.open(filepath, 'wb+') as destination:
             for chunk in img.chunks():
                 destination.write(chunk)
         print(userId)
         print(img.name)
-        return JsonResponse({"meta":{"status":200,"msg":"上传成功"}})
+        return JsonResponse({"data":filepath,"meta":{"status":200,"msg":"上传成功"}})
+    except Exception as e:
+        print(e)
+        return JsonResponse({"meta": {"status": 400, "msg": "上传失败"}})
+
+# 修改头像路径
+def updateAvatar(request):
+    try:
+        userId = request.session.get('info')['userId']
+        avatarPath = request.GET.get('avatarPath')
+        print(avatarPath)
+        user = User.objects.get(id=userId)
+        user.avatarPath = avatarPath
+        user.save()
+        return JsonResponse({"data":userId,"meta": {"status": 200, "msg": "上传成功"}})
     except Exception as e:
         print(e)
         return JsonResponse({"meta": {"status": 400, "msg": "上传失败"}})
@@ -147,36 +174,51 @@ def uploadCommentImage(request):
 
 # 写博客
 def writeArticle(request):
-    # authorId = request.GET.get('userId')
-    authorId = request.session.get('info')['userId']
-    title = request.GET.get("title")
-    abstract = request.GET.get('abstract')
-    categoryId = request.GET.get('categoryId')
-    labels = request.GET.get('labels')
-    labelsList = labels.split('-')
-    print("labelsList",labelsList)
-    if labels == '':
-        labelsList = []
-    coverPath = request.GET.get('coverPath')
-    if coverPath == None:
-        coverPath = "static/avatars/default.jpeg"
-    content = request.GET.get('content')
-    print(authorId)
-    author = User.objects.filter(id=authorId).first()
-    print(title)
-    print(abstract)
-    print(categoryId)
-    print(labels)
-    print(coverPath)
-    print(content)
-    category = Category.objects.get(id=categoryId)
-    article = Article.objects.create(title=title,author=author,author_id=authorId,
-                           category=category,abstract=abstract,coverPath=coverPath,
-                           content=content)
-    # print(article)
-    # article.labels.set(*labelsList)
-    article.labels.add(*labelsList)
-    return JsonResponse({"meta": {"status": 200, "msg": "发布成功"}})
+    try:
+        # authorId = request.GET.get('userId')
+        authorId = request.session.get('info')['userId']
+        title = request.GET.get("title")
+        abstract = request.GET.get('abstract')
+        categoryId = request.GET.get('categoryId')
+        labels = request.GET.get('labels')
+        labelsList = labels.split('-')
+        print("labelsList",labelsList)
+        if labels == '':
+            labelsList = []
+        coverPath = request.GET.get('coverPath')
+        if coverPath == None:
+            coverPath = "static/avatars/default.jpeg"
+        content = request.GET.get('content')
+        print(authorId)
+        author = User.objects.filter(id=authorId).first()
+        print(title)
+        print(abstract)
+        print(categoryId)
+        print(labels)
+        print(coverPath)
+        print(content)
+        category = Category.objects.get(id=categoryId)
+        article = Article.objects.create(title=title,author=author,author_id=authorId,
+                               category=category,abstract=abstract,coverPath=coverPath,
+                               content=content)
+
+        id = article.id
+        # print("==>",article)
+        # art = article
+        # article.labels.set(*labelsList)
+        # article.labels.add(*labelsList)
+        print(Article.objects.filter(id=id))
+        article = [item for item in Article.objects.filter(id=id).values()][0]
+        print(article)
+        # art = []
+        # print(article.objects.values())
+        # art = [item for item in article.objects.values()][0]
+        # print(art)
+        return JsonResponse({"data":article,"meta": {"status": 200, "msg": "发布成功"}})
+    except Exception as e:
+        print(e)
+        return JsonResponse({"meta": {"status": 400, "msg": "发布失败"}})
+
 
 # 获取类别列表
 def getCategoryList(request):
@@ -195,7 +237,8 @@ def getCategoryList(request):
 # 获取用户的类别列表（包括每个类别下的文章数）
 def getCategoryCount(request):
     try:
-        userId = request.session.get('info')['userId']
+        # userId = request.session.get('info')['userId']
+        userId = request.GET.get('ckUserId')
         # res = Article.objects.filter(author_id=userId).annotate(count=Count("category_id")).values("count")
         obj = Article.objects.filter(author_id=userId)
         res = obj.values("category_id").annotate(categoryId=F("category_id"),categoryName=F("category__categoryName"),count=Count("category_id")).values("categoryId","categoryName","count")
@@ -248,7 +291,8 @@ def getLabelList(request):
     print("获取标签列表")
     try:
         # labelList = [model_to_dict(item) for item in Label.objects.all()]
-        userId = request.session.get('info')["userId"]
+        # userId = request.session.get('info')["userId"]
+        userId = request.GET.get('ckUserId')
         labelList = [item for item in User.objects.get(id=userId).lables.all().values()]
         pprint(labelList)
 
@@ -260,7 +304,8 @@ def getLabelList(request):
 # 获取用户的类别列表（包括每个类别下的文章数）
 def getLabelCount(request):
     try:
-        userId = request.session.get('info')['userId']
+        # userId = request.session.get('info')['userId']
+        userId = request.GET.get('ckUserId')
         from django.db.models import Count,F
         # res = Article.objects.filter(author_id=userId).annotate(count=Count("category_id")).values("count")
         # res = obj.values("category_id").annotate(categoryId=F("category_id"),categoryName=F("category__categoryName"),count=Count("category_id")).values("categoryId","categoryName","count")
@@ -305,19 +350,24 @@ def getLabelCount(request):
 
 # 获取文章列表
 def getArticleList(request):
-    userId = request.session.get('info')['userId']
-    print(userId)
-    print(Article.objects.filter(author_id=userId).values())
-    # articleList = [model_to_dict(item) for item in Article.objects.filter(author_id=userId)]
-    articleList = [item for item in Article.objects.filter(author_id=userId).values()]
+    try:
+        # userId = request.session.get('info')['userId']
+        userId = request.GET.get('ckUserId')
+        print(userId)
+        print(Article.objects.filter(author_id=userId).values())
+        # articleList = [model_to_dict(item) for item in Article.objects.filter(author_id=userId)]
+        articleList = [item for item in Article.objects.filter(author_id=userId).values()]
 
-    for item in articleList:
-        item['createTime'] = '{:%Y-%m-%d}'.format(item['createTime'])
-        item['updateTime'] = '{:%Y-%m-%d}'.format(item['updateTime'])
-        # item['createTime'] = '{:%Y-%m-%d %H:%M:%S}'.format(item['createTime'])
-        # item['updateTime'] = '{:%Y-%m-%d %H:%M:%S}'.format(item['updateTime'])
+        for item in articleList:
+            item['createTime'] = '{:%Y-%m-%d}'.format(item['createTime'])
+            item['updateTime'] = '{:%Y-%m-%d}'.format(item['updateTime'])
+            # item['createTime'] = '{:%Y-%m-%d %H:%M:%S}'.format(item['createTime'])
+            # item['updateTime'] = '{:%Y-%m-%d %H:%M:%S}'.format(item['updateTime'])
 
-    return JsonResponse({"data":articleList, "meta": {"status": 200, "msg": "获取成功"}})
+        return JsonResponse({"data":articleList, "meta": {"status": 200, "msg": "获取成功"}})
+    except Exception as e:
+        print(e)
+        return JsonResponse({"data": articleList, "meta": {"status": 400, "msg": "获取失败"}})
 
 # 提交评论
 def submitComment(request):
@@ -354,3 +404,14 @@ def getCommentList(request):
     except Exception as e:
         print(e)
         return JsonResponse({"meta": {"status": 400, "msg": "获取失败"}})
+
+def UpdateArticleViews(request):
+    try:
+        articleId = request.GET.get('articleId')
+        article = Article.objects.get(id=articleId)
+        article.views += 1
+        article.save()
+        return JsonResponse({"meta": {"status": 200, "msg": "更新成功"}})
+    except Exception as e:
+        print(e)
+        return JsonResponse({"meta": {"status": 400, "msg": "更新失败"}})
